@@ -1,5 +1,7 @@
 const express = require('express')
 const router = express.Router()
+const mongoose = require('mongoose')
+const Product = require('../models/product')
 
 router
   .route('/')
@@ -9,28 +11,51 @@ router
       .json({message: 'get products.'})
   })
   .post((req, res, next) => {
-    const product = {
+    const product = new Product({
+      _id: new mongoose
+        .Types
+        .ObjectId(),
       name: req.body.name,
       price: req.body.price
-    }
-    res
-      .status(201)
-      .json({message: 'post products.', createdProduct: product})
+    })
+    product
+      .save()
+      .then(result => {
+        console.log(result)
+        res
+          .status(201)
+          .json({message: 'post products.', result})
+      })
+      .catch(err => {
+        console.log(err)
+        res
+          .status(500)
+          .json({err})
+      })
   })
 
 router
   .route('/:id')
   .get((req, res, next) => {
     const id = req.params.id
-    if (id === 'secret') {
-      res
-        .status(200)
-        .json({message: 'you found a secret product.', id})
-    } else {
-      res
-        .status(200)
-        .json({message: `you found the ${id} product.`, id})
-    }
+    Product
+      .findById(id)
+      .exec()
+      .then(doc => {
+        console.log(doc)
+        if (doc) {
+          res
+            .status(200)
+            .json(doc)
+        } else {
+          res.status(404).json({ message: 'Not product found!'})
+        }
+      })
+      .catch(err => {
+        res
+          .status(400)
+          .json({err})
+      })
   })
   .patch((req, res, next) => {
     const id = req.params.id
