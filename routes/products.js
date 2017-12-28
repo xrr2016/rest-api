@@ -6,9 +6,20 @@ const Product = require('../models/product')
 router
   .route('/')
   .get((req, res, next) => {
-    res
-      .status(200)
-      .json({message: 'get products.'})
+    Product
+      .find({})
+      .exec()
+      .then(products => {
+        res
+          .status(200)
+          .json(products)
+      })
+      .catch(error => {
+        console.log(error)
+        res
+          .status(500)
+          .json({error})
+      })
   })
   .post((req, res, next) => {
     const product = new Product({
@@ -24,7 +35,7 @@ router
         console.log(result)
         res
           .status(201)
-          .json({message: 'post products.', result})
+          .json(result)
       })
       .catch(err => {
         console.log(err)
@@ -48,7 +59,9 @@ router
             .status(200)
             .json(doc)
         } else {
-          res.status(404).json({ message: 'Not product found!'})
+          res
+            .status(404)
+            .json({message: 'Not product found!'})
         }
       })
       .catch(err => {
@@ -59,15 +72,39 @@ router
   })
   .patch((req, res, next) => {
     const id = req.params.id
-    res
-      .status(200)
-      .json({message: `you update the ${id} product.`, id})
+    // const updates = {} for (const key in req.body) {   updates[key] =
+    // req.body[key] }
+    console.log(req.body)
+    Product.update({
+      _id: id
+    }, {$set: req.body})
+      .exec()
+      .then(result => {
+        res
+          .status(200)
+          .json(result)
+      })
+      .catch(error => {
+        res
+          .status(500)
+          .json(error)
+      })
   })
   .delete((req, res, next) => {
     const id = req.params.id
-    res
-      .status(200)
-      .json({message: `you delete the ${id} product.`, id})
+    Product
+      .remove({_id: id})
+      .exec()
+      .then(result => {
+        res
+          .status(200)
+          .json(result)
+      })
+      .catch(error => {
+        res
+          .status(500)
+          .json(error)
+      })
   })
 
 module.exports = router
